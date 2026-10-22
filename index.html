@@ -633,7 +633,7 @@ app.addEventListener('toggle', e => { const d = e.target; if (d.open) { const el
 let busy = false;
 const ptrT = document.getElementById('ptr-t'), ptr = document.getElementById('ptr');
 async function liveUpdate(){
-  if (!LIVE_OK || busy) return; busy = true; ptr.classList.add('on', 'busy'); ptrT.textContent = '更新しています…';
+  if (!LIVE_OK || busy) return; if (window.dfCheckVersion) window.dfCheckVersion(); busy = true; ptr.classList.add('on', 'busy'); ptrT.textContent = '更新しています…';
   fetched = 0;
   await Promise.all([updateTables(), updateMatches()]);
   if (!fetched) { ptrT.textContent = '更新できませんでした（通信を確かめてください）'; ptr.classList.remove('busy'); setTimeout(() => ptr.classList.remove('on'), 2500); busy = false; return; }
@@ -651,6 +651,9 @@ if (LIVE_OK) {
   document.getElementById('stamp').disabled = true;
 }
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+window.DF_BUILD = 'a3950393';
+window.dfCheckVersion = async () => { try { const r = await fetch('./version.json', {cache:'no-store'}); const j = await r.json(); if (j.v && j.v !== window.DF_BUILD && sessionStorage.getItem('df-reloaded') !== j.v) { sessionStorage.setItem('df-reloaded', j.v); const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if (reg) await reg.update(); location.reload(); } } catch (e) {} };
+window.dfCheckVersion();
 })();
 </script>
 
